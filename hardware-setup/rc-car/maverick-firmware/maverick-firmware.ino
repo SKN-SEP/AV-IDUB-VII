@@ -16,10 +16,11 @@ const int SERVO_N = 1500;
 const int SERVO_R = 1020;
 
 // Throttle pulse widths
-const int ESC_FWD_MAX = 1590; 
+const int ESC_FWD_MAX = 1675;
 const int ESC_FWD_MIN = 1570;
 const int ESC_STOP = 1495;
-const int ESC_BWD_MAX = 1400; 
+const int ESC_BWD_BRAKE = 1400;
+const int ESC_BWD_MAX = 1125;
 const int ESC_BWD_MIN = 1420;
 
 // Global Variables
@@ -93,7 +94,7 @@ void updateESC() {
     switch (currentState) {
         case DRIVE_FWD:
             if (targetThrottle < 0) {
-                esc.writeMicroseconds(ESC_BWD_MAX); // Pulse reverse to Brake
+                esc.writeMicroseconds(ESC_BWD_BRAKE); // Pulse reverse to Brake
                 stateTimer = millis();
                 currentState = BRAKING;
             } else {
@@ -113,17 +114,19 @@ void updateESC() {
         case READY_REV:
             // Must stay in Neutral for 150ms to unlock reverse
             if (millis() - stateTimer > 150) {
-                if (targetThrottle < 0) currentState = DRIVE_BWD;
-                else if (targetThrottle > 0) currentState = DRIVE_FWD;
+                if (targetThrottle < 0) 
+                    currentState = DRIVE_BWD;
+                else 
+                    currentState = DRIVE_FWD;
             }
             break;
 
         case DRIVE_BWD:
-            if (targetThrottle >= 0) {
-                currentState = DRIVE_FWD; // Switching to FWD is usually instant
-            } else {
+            if (targetThrottle >= 0)
+                currentState = DRIVE_FWD;
+            else
                 esc.writeMicroseconds(throttlePWM);
-            }
+
             break;
     }
 }
